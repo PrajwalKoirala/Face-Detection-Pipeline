@@ -1,0 +1,85 @@
+<html>
+<head>
+    <style>
+        #div {
+            width: inherit;
+            height: 100px;
+            line-height: 100px;
+            border: 5px dashed rgba(241, 125, 125, 0.8);
+            font-family: Verdana;
+            text-align: center;
+        }
+
+        #img {
+            width: inherit;
+            line-height: 200px;
+            border: 5px rgba(241, 125, 125, 0.8);
+            font-family: Verdana;
+            text-align: center;
+        }
+    </style>
+
+
+</head>
+
+<body>
+<div style="width: 500px">
+    <div id="div">Drop here</div>
+    <img src="" id="img" style="display: none">
+    <span id="output"></span>
+</div>
+</body>
+
+<script type="text/javascript" src="//code.jquery.com/jquery-1.7.1.js"></script>
+<script>
+
+    $('#div').on(
+        'dragover',
+        function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    )
+    $('#div').on(
+        'dragenter',
+        function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    )
+    $('#div').on(
+        'drop',
+        function (e) {
+            if (e.originalEvent.dataTransfer) {
+                if (e.originalEvent.dataTransfer.files.length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    /*UPLOAD FILES HERE*/
+                    upload(e.originalEvent.dataTransfer.files);
+                }
+            }
+        }
+    );
+
+    function upload(files) {
+        file = files[0];
+        // send file to ajax
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $('#img').css('display', 'block');
+            $.ajax({
+                url: '/ajax',
+                type: 'post',
+                data: {img: e.target.result},
+                success: function (data) {
+                    $("#output").text(JSON.stringify(data));
+                }
+            });
+            $('#img').attr('src', e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+
+</html>
