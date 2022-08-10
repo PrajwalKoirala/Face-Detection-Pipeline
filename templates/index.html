@@ -1,85 +1,167 @@
-<html>
+<html lang=”en”>
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <title>Stream WebCam</title>
+
     <style>
-        #div {
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        #output {
             width: inherit;
             height: 100px;
-            line-height: 100px;
-            border: 5px dashed rgba(241, 125, 125, 0.8);
-            font-family: Verdana;
             text-align: center;
         }
 
-        #img {
-            width: inherit;
-            line-height: 200px;
-            border: 5px rgba(241, 125, 125, 0.8);
-            font-family: Verdana;
-            text-align: center;
+        #camera, #camera--view, #camera--sensor, #camera--output {
+            position: fixed;
+            height: 40%;
+            width: 40%;
+            object-fit: cover;
         }
+
+        #camera--view, #camera--sensor, #camera--output {
+            transform: scaleX(-1);
+            filter: FlipH;
+        }
+
+        #camera--trigger {
+            width: 200px;
+            background-color: black;
+            color: white;
+            font-size: 16px;
+            border-radius: 30px;
+            border: none;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
+            position: fixed;
+            bottom: 30px;
+            left: calc(50% - 100px);
+        }
+
+        .taken {
+            height: 100px !important;
+            width: 100px !important;
+            transition: all 0.5s ease-in;
+            border: solid 3px white;
+            box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+        }
+
     </style>
-
 
 </head>
 
-<body>
-<div style="width: 500px">
-    <div id="div">Drop here</div>
-    <img src="" id="img" style="display: none">
-    <span id="output"></span>
-</div>
-</body>
-
 <script type="text/javascript" src="//code.jquery.com/jquery-1.7.1.js"></script>
+
+<body>
+<div>
+    <span id="output"></span>
+    <div class="col-8">
+        <h3>Figure</h3>
+        <img id="imageT"
+             src="{{ figure }}" alt=""/>
+    </div>
+</div>
+<main id="camera">
+    <!-- Camera sensor -->
+    <canvas id="camera--sensor"></canvas>
+    <!-- Camera view -->
+    <video id="camera--view" autoplay playsinline></video>
+    <!-- Camera output -->
+    <img src="//:0" alt="" id="camera--output">
+    <!-- Camera trigger -->
+    <button id="camera--trigger">Identify</button>
+</main>
+<!-- Reference to your JavaScript file -->
 <script>
 
-    $('#div').on(
-        'dragover',
-        function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    )
-    $('#div').on(
-        'dragenter',
-        function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    )
-    $('#div').on(
-        'drop',
-        function (e) {
-            if (e.originalEvent.dataTransfer) {
-                if (e.originalEvent.dataTransfer.files.length) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    /*UPLOAD FILES HERE*/
-                    upload(e.originalEvent.dataTransfer.files);
-                }
-            }
-        }
-    );
+    // Set constraints for the video stream
+    var constraints = {video: {facingMode: "user"}, audio: false};
+    // Define constants
+    const cameraView = document.querySelector("#camera--view"),
+        cameraOutput = document.querySelector("#camera--output"),
+        cameraSensor = document.querySelector("#camera--sensor"),
+        cameraTrigger = document.querySelector("#camera--trigger")
 
-    function upload(files) {
-        file = files[0];
-        // send file to ajax
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            $('#img').css('display', 'block');
+    // Access the device camera and stream to cameraView
+    function cameraStart() {
+        navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(function (stream) {
+                track = stream.getTracks()[0];
+                cameraView.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error("Oops. Something is broken.", error);
+            });
+
+
+    }
+
+    var intervalId = window.setInterval(function () {
+        document.querySelector("#camera--trigger").click()
+    }, 200);
+
+
+    {#setTimeout(function () {#}
+    {#    cameraSensor.width = cameraView.videoWidth;#}
+    {#    cameraSensor.height = cameraView.videoHeight;#}
+    {#    cameraSensor.getContext("2d").drawImage(cameraView, 0, 0);#}
+    {#    $.ajax({#}
+    {#        url: '/ajax',#}
+    {#        type: 'post',#}
+    {#        data: {img: cameraOutput.src},#}
+    {#        success: function (data) {#}
+    {#            $('#imageT').attr('src', data.image);#}
+    {#$("#output").text(JSON.stringify(data));#}
+    {#        }#}
+    {#    });#}
+    {#},
+        5000
+    )
+        ;
+        #}
+
+
+        cameraTrigger.onclick = function () {
+            cameraSensor.width = cameraView.videoWidth;
+            cameraSensor.height = cameraView.videoHeight;
+            cameraSensor.getContext("2d").drawImage(cameraView, 0, 0);
+            cameraOutput.src = cameraSensor.toDataURL("image/webp");
+            cameraOutput.classList.add("taken");
             $.ajax({
                 url: '/ajax',
                 type: 'post',
-                data: {img: e.target.result},
+                data: {img: cameraOutput.src},
                 success: function (data) {
-                    $("#output").text(JSON.stringify(data));
+                    $('#imageT').attr('src', data.image);
+                    {#$("#output").text(JSON.stringify(data));#}
                 }
             });
-            $('#img').attr('src', e.target.result);
         };
-        reader.readAsDataURL(file);
-    }
+        // Start the video stream when the window loads
+        window.addEventListener("load", cameraStart, false);
+
+
 </script>
+</body>
 
 
 </html>
