@@ -1,11 +1,10 @@
 import base64
-import io
 import os
+import io
 
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from tensorflow import keras
-from keras.preprocessing import image
 from flask import Flask, request, jsonify, render_template
 from detector import Comparer
 
@@ -25,14 +24,12 @@ def ajax():
     r = base64.b64decode(a.split(",")[1])
     image = Image.open(io.BytesIO(r))
     image = np.array(image)
-    classes = comparer.find_match(image)
+    plot_url, faces, classes = comparer.find_matches(image)
     my_response = {
-        "prediction": {
-            "label": str(classes[0])
-        }
+        "prediction": str(classes)
     }
-    print(classes)
-    return jsonify(my_response)
+    print(my_response)
+    return jsonify({"image": 'data:image/png;base64,' + plot_url})
 
 
 app.run()
