@@ -13,7 +13,7 @@ import cv2
 class faceclassmodel():
     def __init__(self):
         self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        self.model = keras.models.load_model("/home/prajwal/Workfolder/FClassifier/facemodel/facenet_keras.h5")
+        self.model = keras.models.load_model("./facemodel/facenet_keras.h5")
         # self.optimizer = keras.optimizers.Adam(learning_rate=0.00025, clipnorm=1.0)
         print("Model Loaded. Compiling Manually ...")
         self.model.compile()
@@ -87,7 +87,7 @@ class Comparer():
     def __init__(self):
         self.facemodel = faceclassmodel()
         self.threshold = 12.0
-        dataset_path = "/home/prajwal/Workfolder/FClassifier/dataset"
+        dataset_path = "./dataset"
         self.savedembs = []
         for dirs in os.listdir(dataset_path):
             for file in os.listdir(dataset_path + "/" + dirs):
